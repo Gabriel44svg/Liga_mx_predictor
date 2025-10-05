@@ -1,0 +1,50 @@
+# src/api/main.py
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List
+
+from .schemas import PredictionRequest, PredictionResponse
+from .predictor import Predictor
+
+app = FastAPI(
+    title="Liga MX Prediction API",
+    description="API para predecir resultados de partidos de la Liga MX usando un ensamble de modelos.",
+    version="1.0.0"
+)
+
+# --- Configurar CORS ---
+# Esto permite que nuestra app de React (que corre en otro puerto) se comunique con la API.
+origins = [
+    "http://localhost",
+    "http://localhost:3000", # El puerto estándar para create-react-app
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Cargar el predictor al iniciar la aplicación ---
+# Esto asegura que los modelos se carguen una sola vez, no en cada petición.
+predictor = Predictor()
+
+@app.get("/teams", response_model=List[str])
+def get_teams():
+    """Devuelve una lista de todos los equipos disponibles para las predicciones."""
+    # Los equipos están en el mapeo que guardamos.
+    return sorted(list(predictor.team_mapping.keys()))
+
+@app.post("/predict", response_model=PredictionResponse)
+def predict_match(request: PredictionRequest):
+    """Recibe los equipos y devuelve la predicción del modelo."""
+    try:
+        prediction = predictor.predict_single_match(request.home_team, request.away_team)
+        return prediction
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # Para cualquier otro error inesperado
+        raise HTTPException(status_code=500, detail=f"Ocurrió un error interno: {e}")
