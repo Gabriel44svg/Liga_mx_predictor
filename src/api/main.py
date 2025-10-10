@@ -13,11 +13,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# --- Configurar CORS ---
-# Esto permite que nuestra app de React (que corre en otro puerto) se comunique con la API.
+
 origins = [
     "http://localhost",
-    "http://localhost:3000", # El puerto estándar para create-react-app
+    "http://localhost:3000", 
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -27,14 +26,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Cargar el predictor al iniciar la aplicación ---
-# Esto asegura que los modelos se carguen una sola vez, no en cada petición.
+
 predictor = Predictor()
 
 @app.get("/teams", response_model=List[str])
 def get_teams():
     """Devuelve una lista de todos los equipos disponibles para las predicciones."""
-    # Los equipos están en el mapeo que guardamos.
+    # Los equipos están en el mapeo.
     return sorted(list(predictor.team_mapping.keys()))
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -46,5 +44,5 @@ def predict_match(request: PredictionRequest):
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Para cualquier otro error inesperado
+        # Para cualquier error
         raise HTTPException(status_code=500, detail=f"Ocurrió un error interno: {e}")

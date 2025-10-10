@@ -4,7 +4,6 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-# --- Modelos y utilidades de Scikit-learn ---
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
@@ -12,11 +11,8 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
 
-# --- Módulo para conectar a la BD ---
 from ..data_ingestion.db_config import get_engine
 
-# --- Configuración ---
-# Directorio para guardar los modelos entrenados
 ARTIFACTS_DIR = Path(__file__).parent.parent.parent / "artifacts"
 ARTIFACTS_DIR.mkdir(exist_ok=True) # Crea la carpeta si no existe
 
@@ -119,16 +115,15 @@ class ModelTrainer:
             # Evaluación
             preds = model.predict(X_test)
             acc = accuracy_score(y_test, preds)
-            print(f"✅ Precisión (Accuracy) de {name}: {acc:.4f}")
+            print(f" Precisión (Accuracy) de {name}: {acc:.4f}")
             
-            # Guardar el modelo entrenado
+            # Guarda el modelo entrenado
             model_path = ARTIFACTS_DIR / f"{name}_model.joblib"
             joblib.dump(model, model_path)
             print(f"Modelo guardado en: {model_path}")
             
             self.trained_models[name] = model
 
-# --- Bloque principal para ejecutar el pipeline ---
 if __name__ == '__main__':
     db_engine = get_engine()
     if db_engine:

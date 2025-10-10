@@ -1,0 +1,16 @@
+
+pandas
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+scipy
+numpy
+
+scikit-learn
+xgboost
+joblib
+
+tensorflow
+
+fastapi[all]

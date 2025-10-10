@@ -4,7 +4,6 @@ from sqlalchemy import text
 from db_config import get_engine
 
 # Definimos la estructura de la tabla usando SQL
-# Usamos nombres de columna en minúsculas y sin espacios por convención
 CREATE_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS partidos (
     id SERIAL PRIMARY KEY,
@@ -36,10 +35,10 @@ def setup_database():
 
     try:
         with engine.connect() as connection:
-            connection.execute(text("BEGIN;")) # Inicia una transacción
+            connection.execute(text("BEGIN;")) 
             print("Creando la tabla 'partidos' si no existe...")
             connection.execute(text(CREATE_TABLE_QUERY))
-            connection.execute(text("COMMIT;")) # Confirma la transacción
+            connection.execute(text("COMMIT;")) 
             print("Tabla 'partidos' verificada/creada exitosamente.")
     except Exception as e:
         print(f"Error durante la configuración de la base de datos: {e}")

@@ -5,17 +5,14 @@ import numpy as np
 import json
 from pathlib import Path
 
-# --- Framework de Deep Learning ---
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Embedding, LSTM, Dense, Concatenate, Dropout
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
-# --- Módulo para conectar a la BD ---
 from ..data_ingestion.db_config import get_engine
 
-# --- Configuración ---
 ARTIFACTS_DIR = Path(__file__).parent.parent.parent / "artifacts"
 ARTIFACTS_DIR.mkdir(exist_ok=True)
 SEQUENCE_LENGTH = 5
@@ -153,7 +150,7 @@ class DLModelTrainer:
     def train(self, epochs=20, batch_size=32):
         print("\n--- Iniciando Entrenamiento del Modelo de Deep Learning ---")
         
-        # --- SECCIÓN CORREGIDA ---
+        
         # 1. Definir todas las entradas y la salida
         home_team_X = self.data['home_team']
         away_team_X = self.data['away_team']
@@ -161,7 +158,7 @@ class DLModelTrainer:
         away_seq_X = self.data['away_sequence']
         y = self.data['target']
         
-        # 2. Dividir todos los arrays a la vez. Recibimos 10 arrays de vuelta.
+        # 2. Divide todos los arrays a la vez.
         (home_team_train, home_team_val,
          away_team_train, away_team_val,
          home_seq_train, home_seq_val,
@@ -171,11 +168,11 @@ class DLModelTrainer:
             test_size=0.2, random_state=42
         )
 
-        # 3. Re-agrupar las entradas en listas para el entrenamiento y la validación
+        # 3. Re-agrupa las entradas en listas para el entrenamiento y la validación
         X_train = [home_team_train, away_team_train, home_seq_train, away_seq_train]
         X_val = [home_team_val, away_team_val, home_seq_val, away_seq_val]
 
-        # 4. Entrenar el modelo con los datos ya organizados
+        # 4. Entrena el modelo con los datos ya organizados
         history = self.model.fit(
             X_train, y_train,
             validation_data=(X_val, y_val),
@@ -186,9 +183,9 @@ class DLModelTrainer:
         
         model_path = ARTIFACTS_DIR / "deep_learning_model.h5"
         self.model.save(model_path)
-        print(f"\n✅ Modelo de Deep Learning guardado en: {model_path}")
+        print(f"\n Modelo de Deep Learning guardado en: {model_path}")
         return history
-        # --- FIN DE LA SECCIÓN CORREGIDA ---
+        
 
 if __name__ == '__main__':
     db_engine = get_engine()

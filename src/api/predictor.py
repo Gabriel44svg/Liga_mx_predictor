@@ -10,8 +10,6 @@ import tensorflow as tf
 from ..data_ingestion.db_config import get_engine
 from ..models.poisson_model import PoissonModel
 
-# --- CORRECCIÓN AQUÍ ---
-# La ruta correcta tiene 3 .parent, no 4
 ARTIFACTS_DIR = Path(__file__).parent.parent.parent / "artifacts"
 SEQUENCE_LENGTH = 5
 
@@ -24,7 +22,7 @@ class Predictor:
         self.engine = get_engine()
         self._load_models()
         self.all_data = self._load_all_data()
-        print("✅ Predictor inicializado correctamente.")
+        print(" Predictor inicializado correctamente.")
 
     def _load_models(self):
         """Carga todos los artefactos de modelo necesarios."""
@@ -113,7 +111,7 @@ class Predictor:
         ]
         dl_preds = self.dl_model.predict(X_dl, verbose=0)
         
-        # --- 4. Ensamblar características y predecir con el Meta-Modelo ---
+        # --- Ensambla características y predecir con el Meta-Modelo ---
         meta_features = np.hstack([
             poisson_probs,
             ml_preds['logistic_regression'],

@@ -9,7 +9,7 @@ def clean_and_prepare_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     print("Iniciando limpieza y preparación de datos...")
 
-    # 1. Renombrar columnas a un formato estándar (snake_case)
+    # 1. Renombra las columnas a un formato estándar (snake_case)
     column_mapping = {
         'Country': 'country', 'League': 'league', 'Season': 'season',
         'Date': 'date', 'Time': 'time', 'Home': 'home_team', 'Away': 'away_team',
@@ -18,10 +18,10 @@ def clean_and_prepare_data(df: pd.DataFrame) -> pd.DataFrame:
     }
     df = df.rename(columns=column_mapping)
 
-    # 2. Convertir la columna 'date' a formato de fecha
+    # 2. Convierte la columna 'date' a formato de fecha
     df['date'] = pd.to_datetime(df['date'], dayfirst=True, errors='coerce')
 
-    # 3. Eliminar filas donde la fecha no se pudo convertir
+    # 3. Elimina las filas donde la fecha no se pudo convertir
     df.dropna(subset=['date'], inplace=True)
 
     # 4. Asegurar que los goles sean enteros (manejando nulos si los hay)
@@ -49,13 +49,11 @@ def ingest_data_from_csv(file_path: str):
         print(f"Leyendo datos desde {file_path}...")
         df = pd.read_csv(file_path)
 
-        # Limpiar y preparar los datos
+        # Limpia y preparar los datos
         df_cleaned = clean_and_prepare_data(df)
 
         # Ingesta en la base de datos
         print("Iniciando la inserción de datos en la base de datos...")
-        # 'replace' borra la tabla y la vuelve a crear.
-        # 'append' añadiría los nuevos datos. Usamos 'replace' para la carga inicial.
         df_cleaned.to_sql('partidos', engine, if_exists='replace', index=False)
         
         print("¡Proceso de ingesta de datos completado exitosamente!")
@@ -66,6 +64,5 @@ def ingest_data_from_csv(file_path: str):
         print(f"Ocurrió un error inesperado durante la ingesta: {e}")
 
 if __name__ == '__main__':
-    # Asegúrate de que tu CSV esté en la carpeta /data
     csv_file = 'data/historical_data.csv' 
     ingest_data_from_csv(csv_file)

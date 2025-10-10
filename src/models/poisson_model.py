@@ -4,7 +4,6 @@ import pandas as pd
 from scipy.stats import poisson
 import numpy as np
 
-# Hacemos una importación relativa para acceder a la configuración de la BD
 from ..data_ingestion.db_config import get_engine
 
 class PoissonModel:
@@ -40,11 +39,10 @@ class PoissonModel:
         print("Calculando fuerzas de equipo (entrenamiento)...")
         df = self.historical_data.copy()
 
-        # 1. Calcular promedios de goles de la liga
         avg_home_goals = df['home_goals'].mean()
         avg_away_goals = df['away_goals'].mean()
 
-        # 2. Calcular la fuerza de ataque y defensa para cada equipo
+        #  Calcula la fuerza de ataque y defensa para cada equipo
         # Fuerza de Ataque = Promedio de goles del equipo / Promedio de goles de la liga
         # Fuerza de Defensa = Promedio de goles concedidos por el equipo / Promedio de goles de la liga
         
@@ -58,7 +56,6 @@ class PoissonModel:
             avg_goals_conceded_away=('home_goals', 'mean')
         ).reset_index().rename(columns={'away_team': 'team'})
         
-        # Unimos las estadísticas
         team_strengths = pd.merge(home_stats, away_stats, on='team', how='outer').fillna(0)
 
         # Calculamos las fuerzas relativas a la media de la liga
@@ -82,7 +79,7 @@ class PoissonModel:
             print("Error: Uno o ambos equipos no se encontraron en los datos históricos.")
             return None
             
-        # 1. Obtener las fuerzas de los equipos involucrados
+        # Obtiene las fuerzas de los equipos involucrados
         home_attack = self.team_strengths.at[home_team, 'attack_strength_home']
         home_defense = self.team_strengths.at[home_team, 'defense_strength_home']
         away_attack = self.team_strengths.at[away_team, 'attack_strength_away']
@@ -144,32 +141,24 @@ class PoissonModel:
             "prob_marcador": round(max_prob * 100, 2)
         }
 
-# --- Bloque para probar el script directamente ---
 if __name__ == '__main__':
-    # Obtenemos el motor de la base de datos
     db_engine = get_engine()
 
     if db_engine:
-        # 1. Creamos una instancia del modelo
         model = PoissonModel(engine=db_engine)
 
-        # 2. "Entrenamos" el modelo (calculamos las fuerzas)
         model.train()
         
-        # --- PASO 1: VER LOS EQUIPOS DISPONIBLES ---
-        # Imprimimos la lista de equipos para que sepas cuáles puedes usar.
         if model.team_strengths is not None:
-            print("\n✅ Equipos disponibles en la base de datos:", model.team_strengths.index.tolist())
+            print("\n Equipos disponibles en la base de datos:", model.team_strengths.index.tolist())
         
-        # --- PASO 2: ELIGE DOS EQUIPOS DE LA LISTA DE ARRIBA ---
-        # Copia y pega los nombres EXACTOS de la lista que se imprimió.
         home = "COPIA UN EQUIPO DE LA LISTA AQUÍ"
         away = "COPIA OTRO EQUIPO DE LA LISTA AQUÍ"
         
         prediction = model.predict(home, away)
         
         if prediction:
-            print("\n--- ⚽ PREDICCIÓN DEL PARTIDO ⚽ ---")
+            print("\n---  PREDICCIÓN DEL PARTIDO  ---")
             print(f"Partido: {home} vs {away}")
             print(f"Probabilidad Victoria Local ({home}): {prediction['prediccion']['victoria_local']}%")
             print(f"Probabilidad Empate: {prediction['prediccion']['empate']}%")

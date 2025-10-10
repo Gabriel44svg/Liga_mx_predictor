@@ -6,20 +6,17 @@ import joblib
 import json
 from pathlib import Path
 
-# --- Modelos y utilidades ---
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 
-# --- Importar nuestras propias clases y configuraciones ---
 from ..data_ingestion.db_config import get_engine
 from .poisson_model import PoissonModel
 from .ml_pipeline import FeatureEngineer as MLFeatureEngineer
 from .dl_pipeline import DLDataPreprocessor
 
-# --- Configuración ---
 ARTIFACTS_DIR = Path(__file__).parent.parent.parent / "artifacts"
 SEQUENCE_LENGTH = 5
 
@@ -42,7 +39,7 @@ class MetaModelTrainer:
             self.team_mapping = json.load(f)
         self.poisson_model = PoissonModel(engine=self.engine)
         self.poisson_model.train()
-        print("✅ Todos los modelos base han sido cargados.")
+        print(" Todos los modelos base han sido cargados.")
 
     def _generate_meta_dataset(self, df_holdout):
         print(f"Generando predicciones base sobre {len(df_holdout)} partidos de holdout...")
@@ -81,7 +78,7 @@ class MetaModelTrainer:
         X_dl_holdout = [home_team_ids, away_team_ids, home_seqs, away_seqs]
         dl_preds = self.dl_model.predict(X_dl_holdout)
 
-        # --- 4. Ensamblar el Meta-Dataset ---
+        # --- 4. Ensambla el Meta-Dataset ---
         meta_features = np.hstack([
             np.array(poisson_preds),
             ml_preds['logistic_regression'],
@@ -101,22 +98,19 @@ class MetaModelTrainer:
         meta_df.dropna(inplace=True)
         meta_target = df_holdout.loc[meta_df.index, 'result']
 
-        print(f"✅ Meta-dataset creado con {meta_df.shape[1]} características y {len(meta_df)} filas.")
+        print(f" Meta-dataset creado con {meta_df.shape[1]} características y {len(meta_df)} filas.")
         return meta_df, meta_target
 
     def train(self):
         print("\n--- Iniciando Entrenamiento del Meta-Modelo ---")
         print("Preparando dataset completo para la división...")
 
-        # Paso 1: Generar características de ML sobre todo el dataset.
         ml_fe = MLFeatureEngineer(self.engine)
         df_ml_base = ml_fe.create_features()
 
-        # Paso 2: Generar características de DL.
         dl_preprocessor = DLDataPreprocessor(self.engine)
         dl_features_dict = dl_preprocessor.create_sequences()
 
-        # Reconstruir el DF de DL
         team_map_inv = {v: k for k, v in self.team_mapping.items()}
         target_map_inv = {0: 'H', 1: 'D', 2: 'A'}
 
@@ -129,7 +123,7 @@ class MetaModelTrainer:
         })
         df_dl_reconstructed['result'] = df_dl_reconstructed['result_code'].map(target_map_inv)
 
-        # --- 🔧 Corrección aquí ---
+        
         df_ml_base_reset = df_ml_base.reset_index().rename(columns={'index': 'id'})
         df_full_features = pd.merge(
             df_ml_base_reset,
@@ -144,17 +138,15 @@ class MetaModelTrainer:
         df_full_features.drop_duplicates(subset=['id'], inplace=True)
 
         if df_full_features.empty:
-            print("❌ ERROR: No se pudieron alinear los datasets de ML y DL. Abortando.")
+            print(" ERROR: No se pudieron alinear los datasets de ML y DL. Abortando.")
             return
 
-        print(f"✅ Datasets alineados. {len(df_full_features)} partidos comunes encontrados.")
+        print(f" Datasets alineados. {len(df_full_features)} partidos comunes encontrados.")
 
-        # Guardar dataset combinado para inspección
         combined_path = ARTIFACTS_DIR / "combined_features.csv"
         df_full_features.to_csv(combined_path, index=False)
-        print(f"📂 Dataset combinado guardado en: {combined_path}")
+        print(f" Dataset combinado guardado en: {combined_path}")
 
-        # Dividir dataset
         _, df_holdout = train_test_split(
             df_full_features,
             test_size=0.2,
@@ -173,11 +165,11 @@ class MetaModelTrainer:
 
         preds = meta_model.predict(X_meta)
         acc = accuracy_score(y_meta_encoded, preds)
-        print(f"✅ Precisión (Accuracy) del Meta-Modelo: {acc:.4f}")
+        print(f" Precisión (Accuracy) del Meta-Modelo: {acc:.4f}")
 
         model_path = ARTIFACTS_DIR / "meta_model.joblib"
         joblib.dump(meta_model, model_path)
-        print(f"🏆 Meta-Modelo final guardado en: {model_path}")
+        print(f" Meta-Modelo final guardado en: {model_path}")
 
 
 if __name__ == '__main__':
