@@ -1,11 +1,31 @@
 {
+  "version": 2,
   "git": {
     "deploymentEnabled": {
       "master": true
     }
   },
-  "github": {
-    "silent": true
-  },
-  "buildCommand": "npm run build"
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/build/$1"
+    }
+  ]
 }
