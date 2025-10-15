@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "git": {
-    "deploymentEnabled": {
-      "master": true
-    }
-  },
   "builds": [
     {
       "src": "api/index.py",
@@ -27,5 +22,10 @@
       "src": "/(.*)",
       "dest": "frontend/build/$1"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "master": true
+    }
+  }
 }
